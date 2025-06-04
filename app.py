@@ -18,7 +18,7 @@ HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 if st.session_state["manifest_data"] is None:
     all_data = []
     today = datetime.utcnow().date()
-    date_list = [today - timedelta(days=i) for i in range(3)]
+    date_list = [today - timedelta(days=i) for i in range(5)]
 
     for date in date_list:
         page = 1

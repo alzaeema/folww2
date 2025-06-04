@@ -14,7 +14,7 @@ if "manifest_data" not in st.session_state:
 TOKEN = st.secrets["token"]
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
-# ✅ تحميل بيانات المنفيستات لآخر 3 أيام مع pagination
+# ✅ تحميل بيانات المنفيستات لآخر 5 أيام مع pagination
 if st.session_state["manifest_data"] is None:
     all_data = []
     today = datetime.utcnow().date()
@@ -49,7 +49,7 @@ if st.session_state["manifest_data"] is None:
                 break
 
     st.session_state["manifest_data"] = all_data
-    st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر 3 أيام")
+    st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر 5 أيام")
 
 # ✅ تحليل البيانات
 if st.session_state["manifest_data"]:

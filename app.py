@@ -5,19 +5,18 @@ import requests
 from datetime import datetime, timedelta
 import plotly.express as px
 
-st.set_page_config(page_title="تقرير التوصيل للافرع ", layout="wide")
+st.set_page_config(page_title="تقرير التوصيل للافرع", layout="wide")
 st.title("📦 أداة تحليل التوصيل لكل الفروع")
 
 if "manifest_data" not in st.session_state:
     st.session_state["manifest_data"] = None
 
-# ✅ التوكن الجديد - ثابت داخل الكود
+# ✅ التوكن - محفوظ من secrets.toml
 TOKEN = st.secrets["token"]
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
 # ✅ جلب البيانات تلقائيًا عند تشغيل الصفحة
 if st.session_state["manifest_data"] is None:
-    headers = {"Authorization": f"Bearer {TOKEN}"}
     all_data = []
     today = datetime.utcnow().date()
     date_list = [today - timedelta(days=i) for i in range(3)]  # آخر 3 أيام
@@ -26,19 +25,20 @@ if st.session_state["manifest_data"] is None:
         body = {"manifestDate": str(date)}
         response = requests.post(
             "https://jenni.alzaeemexp.com/api/liaison/manifest/getAllLiaisonManifest",
-            headers=headers,
+            headers=HEADERS,
             json=body
         )
         if response.status_code == 200:
-           result = response.json()
-if result and "data" in result:
-    all_data.extend(result["data"])
-else:
+            result = response.json()
+            if result and "data" in result:
+                all_data.extend(result["data"])
+        else:
             st.error(f"❌ فشل في جلب البيانات بتاريخ {date}. الرمز: {response.status_code}")
 
     st.session_state["manifest_data"] = all_data
     st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر 3 أيام")
 
+# ✅ تحليل البيانات
 if st.session_state["manifest_data"]:
     data = st.session_state["manifest_data"]
 
@@ -63,6 +63,7 @@ if st.session_state["manifest_data"]:
 
     df = parse_manifest_data(data)
 
+    # ✅ الفلاتر
     st.sidebar.header("📅 الفلاتر")
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
@@ -77,7 +78,7 @@ if st.session_state["manifest_data"]:
         custom_date = st.sidebar.date_input("اختر تاريخ", value=today)
         filtered_df = df[df["تاريخ المنفيست"] == custom_date]
 
-    total_shipments = filtered_df['عدد الشحنات'].sum()
+    total_shipments = filtered_df["عدد الشحنات"].sum()
     st.metric(label="📦 مجموع كل الشحنات في التاريخ المحدد", value=f"{total_shipments:,}")
 
     if filtered_df.empty:
@@ -123,7 +124,6 @@ if st.session_state["manifest_data"]:
 
         st.subheader("📈 مقارنة نسب الشحنات الواصلة بين الفروع")
 
-        # ✅ تطبيع اسم المرحلة بدون اسم الفرع
         filtered_df["اسم المرحلة"] = filtered_df["المرحلة"].apply(lambda x: x.split('-')[0].strip())
 
         success_stages = [

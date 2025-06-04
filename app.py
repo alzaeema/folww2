@@ -33,7 +33,7 @@ if st.session_state["manifest_data"] is None:
            result = response.json()
 if result and "data" in result:
     all_data.extend(result["data"])
-        else:
+else:
             st.error(f"❌ فشل في جلب البيانات بتاريخ {date}. الرمز: {response.status_code}")
 
     st.session_state["manifest_data"] = all_data

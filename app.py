@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import json
 import requests
 from datetime import datetime, timedelta
 import plotly.express as px
@@ -11,29 +10,43 @@ st.title("📦 أداة تحليل التوصيل لكل الفروع")
 if "manifest_data" not in st.session_state:
     st.session_state["manifest_data"] = None
 
-# ✅ التوكن - محفوظ من secrets.toml
+# ✅ التوكن من secrets.toml
 TOKEN = st.secrets["token"]
 HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 
-# ✅ جلب البيانات تلقائيًا عند تشغيل الصفحة
+# ✅ تحميل بيانات المنفيستات لآخر 3 أيام مع pagination
 if st.session_state["manifest_data"] is None:
     all_data = []
     today = datetime.utcnow().date()
-    date_list = [today - timedelta(days=i) for i in range(3)]  # آخر 3 أيام
+    date_list = [today - timedelta(days=i) for i in range(3)]
 
     for date in date_list:
-        body = {"manifestDate": str(date)}
-        response = requests.post(
-            "https://jenni.alzaeemexp.com/api/liaison/manifest/getAllLiaisonManifest",
-            headers=HEADERS,
-            json=body
-        )
-        if response.status_code == 200:
-            result = response.json()
-            if result and "data" in result:
-                all_data.extend(result["data"])
-        else:
-            st.error(f"❌ فشل في جلب البيانات بتاريخ {date}. الرمز: {response.status_code}")
+        page = 1
+        while True:
+            body = {
+                "manifestDate": str(date),
+                "pageNumber": page,
+                "pageSize": 100
+            }
+            response = requests.post(
+                "https://jenni.alzaeemexp.com/api/liaison/manifest/getAllLiaisonManifest",
+                headers=HEADERS,
+                json=body
+            )
+            if response.status_code == 200:
+                result = response.json()
+                data_page = result.get("data", [])
+                if not data_page:
+                    break
+                all_data.extend(data_page)
+
+                total_pages = result.get("totalPages", 1)
+                if page >= total_pages:
+                    break
+                page += 1
+            else:
+                st.error(f"❌ فشل في جلب البيانات بتاريخ {date}. الرمز: {response.status_code}")
+                break
 
     st.session_state["manifest_data"] = all_data
     st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر 3 أيام")

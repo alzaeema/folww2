@@ -18,7 +18,7 @@ HEADERS = {"Authorization": f"Bearer {TOKEN}"}
 if st.session_state["manifest_data"] is None:
     all_data = []
     today = datetime.utcnow().date()
-    date_list = [today - timedelta(days=i) for i in range(5)]
+    date_list = [today - timedelta(days=i) for i in range(30)]
 
     for date in date_list:
         page = 1
@@ -49,7 +49,7 @@ if st.session_state["manifest_data"] is None:
                 break
 
     st.session_state["manifest_data"] = all_data
-    st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر 5 أيام")
+    st.success(f"✅ تم تحميل {len(all_data)} منفيست بنجاح لآخر شهر")
 
 # ✅ تحليل البيانات
 if st.session_state["manifest_data"]:
